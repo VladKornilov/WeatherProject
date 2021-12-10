@@ -4,13 +4,10 @@ import (
 	"errors"
 	"net/url"
 	"os"
-	"strconv"
 )
 
 type AppConfig struct {
-	SiteUrl          *url.URL
-	MerchantId       int
-	MerchantPassword string
+	SiteUrl *url.URL
 }
 
 func NewAppConfig() (*AppConfig, error) {
@@ -19,28 +16,14 @@ func NewAppConfig() (*AppConfig, error) {
 	if !exists {
 		return nil, errors.New("SITE_URL was not specified")
 	}
-	merchID, exists := os.LookupEnv("MERCHANT_ID")
-	if !exists {
-		return nil, errors.New("MERCHANT_ID was not specified")
-	}
-	merchPass, exists := os.LookupEnv("MERCHANT_PASSWORD")
-	if !exists {
-		return nil, errors.New("MERCHANT_PASSWORD was not specified")
-	}
 
 	strurl, err := url.Parse(rawurl)
-	if err != nil {
-		return nil, err
-	}
-	id, err := strconv.Atoi(merchID)
 	if err != nil {
 		return nil, err
 	}
 
 	cfg := new(AppConfig)
 	cfg.SiteUrl = strurl
-	cfg.MerchantId = id
-	cfg.MerchantPassword = merchPass
 	return cfg, nil
 }
 

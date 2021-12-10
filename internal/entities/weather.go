@@ -1,4 +1,4 @@
-package weatherProject
+package entities
 
 type Weather struct {
 	Coord struct {
