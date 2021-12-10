@@ -3,73 +3,40 @@ package server
 import (
 	"../api"
 	"../logger"
-	"html/template"
-	"io/ioutil"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
 )
 
-var templates map[string]template.Template
+func StartServer(router *gin.Engine) {
+	router.LoadHTMLGlob("html/templates/*.html")
+	addPageListeners(router)
 
-func StartServer() {
-	addPageTemplates()
-	addPageListeners()
-}
-
-func addPageTemplates() {
-	index, err := ioutil.ReadFile("html/templates/index.html")
-	if logger.LogErr(err) {
-		return
-	}
-
-	templates = make(map[string]template.Template)
-	indexTpl, _ := template.New("index").Parse(string(index))
-	templates["index"] = *indexTpl
-}
-
-func addPageListeners() {
 	port, _ := os.LookupEnv("SITE_PORT")
-	http.HandleFunc("/weather", handleWeatherRequest)
-	//http.HandleFunc("/purchase/", handleFondyRedirect)
-	//http.HandleFunc(response, handleResponse)
-	http.HandleFunc("/", startPage)
+	err := router.Run(port)
+	if logger.LogErr(err) {
+		return
+	}
+}
+
+func addPageListeners(router *gin.Engine) {
+	router.GET("/weather", handleWeatherRequest)
+	router.GET("/", startPage)
 	http.Handle("/html/", http.StripPrefix("/html/", http.FileServer(http.Dir("./html"))))
-
-	err := http.ListenAndServeTLS(port, "ssl/server.crt", "ssl/server.key", nil)
-	if logger.LogErr(err) {
-		return
-	}
 }
 
-func startPage(w http.ResponseWriter, _ *http.Request) {
-	t := templates["index"]
-
-	err := t.Execute(w, nil)
-	if logger.LogErr(err) {
-		return
-	}
+func startPage(c *gin.Context) {
+	c.HTML(http.StatusOK, "index.html", nil)
 }
 
-func handleWeatherRequest(w http.ResponseWriter, r *http.Request) {
-
-	cities, _ := r.URL.Query()["city"]
-	city := cities[0]
+func handleWeatherRequest(c *gin.Context) {
+	city := c.Query("city")
 	weather, _ := api.GetWeather(city)
 
-	t := templates["index"]
-	err := t.ExecuteTemplate(w, "update",
-		struct {
-			Temp      float64
-			Feels     float64
-			Humidity  int
-			WindSpeed float64
-		}{
-			weather.Main.Temp,
-			weather.Main.FeelsLike,
-			weather.Main.Humidity,
-			weather.Wind.Speed,
-		})
-	if logger.LogErr(err) {
-		return
-	}
+	c.HTML(http.StatusOK, "update", gin.H{
+		"Temp":      weather.Main.Temp,
+		"Feels":     weather.Main.FeelsLike,
+		"Humidity":  weather.Main.Humidity,
+		"WindSpeed": weather.Wind.Speed,
+	})
 }
