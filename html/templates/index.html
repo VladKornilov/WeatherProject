@@ -18,39 +18,34 @@
     </div>
 
     <div class="main">
-<!--        <form action="/weather" id="main_form" method="GET">-->
-<!--            <button onclick="document.forms['main_form'].submit()">-->
-<!--                Узнать погоду</button>-->
-<!--        </form>-->
+        <input id="cityInput" type="text" size="20">
         <button onclick="loadWeatherInfo()">
             Узнать погоду</button>
         {{block "update" .}}
             <div id="weatherInfo">
-                <p>Температура:       {{ .Temp }}</p>
-                <p>Ощущается:         {{ .Feels }}</p>
-                <p>Давление:          {{ .Pressure }}</p>
+                <p>Температура:       {{ .Temp }} °C</p>
+                <p>Ощущается:         {{ .Feels }} °C</p>
                 <p>Влажность воздуха: {{ .Humidity }}%</p>
-                <p>Скорость ветра:    {{ .WindSpeed }}</p>
+                <p>Скорость ветра:    {{ .WindSpeed }} м/с</p>
             </div>
         {{end}}
 
 
-        </div>
-        <script>
-            function loadWeatherInfo() {
-                var e = document.getElementById("weatherInfo");
-                var xhr = new XMLHttpRequest();
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState == 4 && xhr.status == 200) {
-                        e.outerHTML = xhr.responseText;
-                    }
-                }
-                xhr.open("GET", "/weather", true);
-                try { xhr.send(); } catch (err) { /* handle error */ }
-            }
-        </script>
-
     </div>
+    <script>
+        function loadWeatherInfo() {
+            const weatherDiv = document.getElementById("weatherInfo");
+            const xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    weatherDiv.outerHTML = xhr.responseText;
+                }
+            }
+            const city = document.getElementById("cityInput").value;
+            xhr.open("GET", "/weather?city=" + city, true);
+            try { xhr.send(); } catch (err) { /* handle error */ }
+        }
+    </script>
 
     <div class="footer">
     </div>

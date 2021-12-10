@@ -9,11 +9,9 @@ import (
 	"os"
 )
 
-var app *Application
 var templates map[string]template.Template
 
-func (a Application) StartServer() {
-	app = &a
+func StartServer() {
 	addPageTemplates()
 	addPageListeners()
 }
@@ -43,7 +41,7 @@ func addPageListeners() {
 	}
 }
 
-func startPage(w http.ResponseWriter, r *http.Request) {
+func startPage(w http.ResponseWriter, _ *http.Request) {
 	t := templates["index"]
 
 	err := t.Execute(w, nil)
@@ -53,7 +51,9 @@ func startPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleWeatherRequest(w http.ResponseWriter, r *http.Request) {
-	city := "Murmansk"
+
+	cities, _ := r.URL.Query()["city"]
+	city := cities[0]
 	weather, _ := api.GetWeather(city)
 
 	t := templates["index"]
@@ -61,13 +61,11 @@ func handleWeatherRequest(w http.ResponseWriter, r *http.Request) {
 		struct {
 			Temp      float64
 			Feels     float64
-			Pressure  int
 			Humidity  int
 			WindSpeed float64
 		}{
 			weather.Main.Temp,
 			weather.Main.FeelsLike,
-			weather.Main.Pressure,
 			weather.Main.Humidity,
 			weather.Wind.Speed,
 		})
