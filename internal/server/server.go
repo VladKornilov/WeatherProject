@@ -1,6 +1,7 @@
 package server
 
 import (
+	"../api"
 	"../logger"
 	"html/template"
 	"io/ioutil"
@@ -9,7 +10,7 @@ import (
 )
 
 var app *Application
-var templates map[string]string
+var templates map[string]template.Template
 
 func (a Application) StartServer() {
 	app = &a
@@ -22,21 +23,15 @@ func addPageTemplates() {
 	if logger.LogErr(err) {
 		return
 	}
-	//buy, err := ioutil.ReadFile("html/templates/buy.html")
-	//if logger.LogErr(err) { return }
-	//purchaseSuccess, err := ioutil.ReadFile("html/templates/purchase_success.html")
-	//if logger.LogErr(err) { return }
 
-	templates = make(map[string]string)
-
-	templates["index"] = string(index)
-	//templates["buy"] = string(buy)
-	//templates["purchaseSuccess"] = string(purchaseSuccess)
+	templates = make(map[string]template.Template)
+	indexTpl, _ := template.New("index").Parse(string(index))
+	templates["index"] = *indexTpl
 }
 
 func addPageListeners() {
 	port, _ := os.LookupEnv("SITE_PORT")
-	//http.HandleFunc("/buy", handleBuyRequest)
+	http.HandleFunc("/weather", handleWeatherRequest)
 	//http.HandleFunc("/purchase/", handleFondyRedirect)
 	//http.HandleFunc(response, handleResponse)
 	http.HandleFunc("/", startPage)
@@ -49,26 +44,33 @@ func addPageListeners() {
 }
 
 func startPage(w http.ResponseWriter, r *http.Request) {
-	//idCookie, err := r.Cookie("uuid")
+	t := templates["index"]
 
-	//var userId string
-	//if err != nil {
-	//	idCookie = new(http.Cookie)
-	//	idCookie.Name = "uuid"
-	//	idCookie.Value = userId
-	//	idCookie.Expires = time.Now().Add(30 * 24 * time.Hour)
-	//	http.SetCookie(w, idCookie)
-	//	if logger.LogErr(err) { return }
-	//} else {
-	//	userId = idCookie.Value
-	//}
-
-	tpl, err := template.New("index").Parse(templates["index"])
+	err := t.Execute(w, nil)
 	if logger.LogErr(err) {
 		return
 	}
+}
 
-	err = tpl.Execute(w, nil)
+func handleWeatherRequest(w http.ResponseWriter, r *http.Request) {
+	city := "Murmansk"
+	weather, _ := api.GetWeather(city)
+
+	t := templates["index"]
+	err := t.ExecuteTemplate(w, "update",
+		struct {
+			Temp      float64
+			Feels     float64
+			Pressure  int
+			Humidity  int
+			WindSpeed float64
+		}{
+			weather.Main.Temp,
+			weather.Main.FeelsLike,
+			weather.Main.Pressure,
+			weather.Main.Humidity,
+			weather.Wind.Speed,
+		})
 	if logger.LogErr(err) {
 		return
 	}

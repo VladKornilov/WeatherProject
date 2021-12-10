@@ -18,7 +18,37 @@
     </div>
 
     <div class="main">
-        <button name="getButton">Узнать погоду</button>
+<!--        <form action="/weather" id="main_form" method="GET">-->
+<!--            <button onclick="document.forms['main_form'].submit()">-->
+<!--                Узнать погоду</button>-->
+<!--        </form>-->
+        <button onclick="loadWeatherInfo()">
+            Узнать погоду</button>
+        {{block "update" .}}
+            <div id="weatherInfo">
+                <p>Температура:       {{ .Temp }}</p>
+                <p>Ощущается:         {{ .Feels }}</p>
+                <p>Давление:          {{ .Pressure }}</p>
+                <p>Влажность воздуха: {{ .Humidity }}%</p>
+                <p>Скорость ветра:    {{ .WindSpeed }}</p>
+            </div>
+        {{end}}
+
+
+        </div>
+        <script>
+            function loadWeatherInfo() {
+                var e = document.getElementById("weatherInfo");
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        e.outerHTML = xhr.responseText;
+                    }
+                }
+                xhr.open("GET", "/weather", true);
+                try { xhr.send(); } catch (err) { /* handle error */ }
+            }
+        </script>
 
     </div>
 
