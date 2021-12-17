@@ -11,9 +11,9 @@ import (
 )
 
 func GetWeather(city string) (entities.Weather, error) {
-	rawUrl, exists := os.LookupEnv("API_URL")
+	rawUrl, exists := os.LookupEnv("WEATHER_API_URL")
 	if !exists {
-		logger.LogData("No API_URL line in env file")
+		logger.LogData("No WEATHER_API_URL line in env file")
 	}
 	rawUrl += "/weather"
 	apiKey, exists := os.LookupEnv("API_KEY")
@@ -31,8 +31,7 @@ func GetWeather(city string) (entities.Weather, error) {
 		return entities.Weather{}, err
 	}
 
-	urlStr := url.String()
-	resp, err := http.Get(urlStr)
+	resp, err := http.Get(url.String())
 	if logger.LogErr(err) {
 		return entities.Weather{}, err
 	}

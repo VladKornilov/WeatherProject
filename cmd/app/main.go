@@ -6,6 +6,9 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// REDIS
+// Docker-compose
+
 func main() {
 	_ = godotenv.Load()
 

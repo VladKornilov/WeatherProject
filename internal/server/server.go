@@ -31,7 +31,10 @@ func startPage(c *gin.Context) {
 
 func handleWeatherRequest(c *gin.Context) {
 	city := c.Query("city")
-	weather, _ := api.GetWeather(city)
+	weather, err := api.GetWeather(city)
+	if logger.LogErr(err) {
+		return
+	}
 
 	c.HTML(http.StatusOK, "update", gin.H{
 		"Temp":      weather.Main.Temp,

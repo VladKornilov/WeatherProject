@@ -18,7 +18,11 @@
     </div>
 
     <div class="main">
+        <button onclick="loadCity()">
+            Узнать свое местоположение</button>
+        <p>
         <input id="cityInput" type="text" size="20">
+
         <button onclick="loadWeatherInfo()">
             Узнать погоду</button>
         {{block "update" .}}
@@ -33,6 +37,20 @@
 
     </div>
     <script>
+        function loadCity() {
+            const cityInput = document.getElementById("cityInput");
+            const xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    const resp = xhr.responseText;
+                    const ipObj = JSON.parse(resp)
+                    cityInput.value = ipObj.city
+                }
+            }
+            xhr.open("GET", "http://ip-api.com/json/", true);
+            try { xhr.send(); } catch (err) { /* handle error */ }
+        }
+
         function loadWeatherInfo() {
             const weatherDiv = document.getElementById("weatherInfo");
             const xhr = new XMLHttpRequest();
