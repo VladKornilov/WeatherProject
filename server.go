@@ -1,16 +1,14 @@
-package server
+package main
 
 import (
-	"../api"
-	"../entities"
-	"../logger"
 	"context"
 	"encoding/json"
-	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 )
 
 var redisClient *redis.Client
@@ -24,14 +22,14 @@ func StartServer(router *gin.Engine) {
 	port, _ := os.LookupEnv("SITE_PORT")
 	redisClient = SetupRedis(url, port)
 	err := router.Run(port)
-	if logger.LogErr(err) {
+	if LogErr(err) {
 		return
 	}
 }
 
 func SetupRedis(url string, port string) *redis.Client {
 	client := redis.NewClient(&redis.Options{
-		Addr:     url + ":" + port,
+		Addr:     "127.0.0.1:6379",
 		Password: "",
 		DB:       0,
 	})
@@ -51,19 +49,23 @@ func startPage(c *gin.Context) {
 func handleWeatherRequest(c *gin.Context) {
 	city := c.Query("city")
 
-	var weather entities.Weather
+	var weather Weather
 
 	weatherJson, err := redisClient.Get(ctx, city).Bytes()
-	if logger.LogErr(err) {
-		weather, err = api.GetWeather(city)
+	if LogErr(err) {
+		weather, err = GetWeather(city)
+		if LogErr(err) {
+			return
+		}
 		json, err := json.Marshal(weather)
 		redisClient.Set(ctx, city, json, time.Minute)
-		if logger.LogErr(err) {
+		if LogErr(err) {
 			return
 		}
 	} else {
+		LogData("Found info about " + city + " in Redis cache")
 		err = json.Unmarshal(weatherJson, &weather)
-		if logger.LogErr(err) {
+		if LogErr(err) {
 			return
 		}
 	}
